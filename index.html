@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Korean-Spanish Neologism Explorer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; height: 100vh; }
+    #word-list { width: 30%; border-right: 1px solid #ccc; overflow-y: scroll; padding: 1em; }
+    #word-list div { padding: 0.5em; cursor: pointer; border-bottom: 1px solid #eee; }
+    #word-list div:hover { background-color: #f0f0f0; }
+    #details { flex: 1; padding: 1em; overflow-y: scroll; }
+    h2 { margin-top: 0; }
+    .pair { margin: 0.3em 0; padding: 0.5em; border: 1px solid #ddd; border-radius: 5px; }
+    .meta { font-size: 0.9em; color: #555; }
+  </style>
+</head>
+<body>
+  <div id="word-list"></div>
+  <div id="details">
+    <h2>Select a word</h2>
+    <p>Click a word on the left to view details and related terms.</p>
+  </div>
+
+  <script>
+    let data = [];
+    let clusters = {};
+
+    async function loadData() {
+      const response = await fetch('neologism_analysis.json');
+      const json = await response.json();
+      data = json.data;
+      const clusterLabels = json.clusters;
+
+      // 클러스터 별로 데이터 정리
+      data.forEach((item, idx) => {
+        item.Cluster = clusterLabels[idx];
+        if (!(item.Cluster in clusters)) {
+          clusters[item.Cluster] = [];
+        }
+        clusters[item.Cluster].push(item);
+      });
+
+      renderList();
+    }
+
+    function renderList() {
+      const container = document.getElementById('word-list');
+      container.innerHTML = '';
+      data.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.textContent = `${item.Expression} (${item.Language})`;
+        div.onclick = () => showDetails(item);
+        container.appendChild(div);
+      });
+    }
+
+    function showDetails(selected) {
+      const detail = document.getElementById('details');
+      detail.innerHTML = `
+        <h2>${selected.Expression} (${selected.Language})</h2>
+        <p><strong>Meaning:</strong> ${selected['Explanation(English)'] || 'N/A'}</p>
+        <p><strong>Example:</strong> ${selected['Example sentence(Korean)'] || selected['Example sentence(Spanish)'] || 'N/A'}</p>
+        <h3>🧩 Similar items in Cluster ${selected.Cluster}</h3>
+      `;
+
+      const clusterItems = clusters[selected.Cluster] || [];
+      clusterItems.forEach(item => {
+        if (item.Expression === selected.Expression && item.Language === selected.Language) return;
+        const div = document.createElement('div');
+        div.className = 'pair';
+        div.innerHTML = `
+          <strong>${item.Expression} (${item.Language})</strong><br>
+          <span class="meta">${item['Explanation(English)']}</span>
+        `;
+        detail.appendChild(div);
+      });
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
