@@ -199,11 +199,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>데이터베이스 구경하기</h1>
+        <h1>Neologism Database</h1>
         
         <div class="dropdown-container">
             <button class="dropdown-button" id="dropdownButton">
-                <span id="selectedText">신조어를 선택하세요</span>
+                <span id="selectedText">Select a word</span>
                 <span class="dropdown-arrow">▼</span>
             </button>
             <div class="dropdown-menu" id="dropdownMenu"></div>
@@ -260,7 +260,7 @@
                 
                 console.log('파싱된 데이터:', csvData);
                 populateDropdown();
-                $('#infoContainer').removeClass().addClass('no-data').text('신조어를 선택하면 상세 정보가 여기에 표시됩니다.');
+                $('#infoContainer').removeClass().addClass('no-data').text('We will show you our precious database');
                 
             } catch (error) {
                 console.error('CSV 파싱 오류:', error);
