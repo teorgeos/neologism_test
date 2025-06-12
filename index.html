@@ -1,83 +1,453 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Korean-Spanish Neologism Explorer</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; height: 100vh; }
-    #word-list { width: 30%; border-right: 1px solid #ccc; overflow-y: scroll; padding: 1em; }
-    #word-list div { padding: 0.5em; cursor: pointer; border-bottom: 1px solid #eee; }
-    #word-list div:hover { background-color: #f0f0f0; }
-    #details { flex: 1; padding: 1em; overflow-y: scroll; }
-    h2 { margin-top: 0; }
-    .pair { margin: 0.3em 0; padding: 0.5em; border: 1px solid #ddd; border-radius: 5px; }
-    .meta { font-size: 0.9em; color: #555; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>데이터베이스 구경하기</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #E8EDE8;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(48, 96, 50, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #306032;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .dropdown-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .dropdown-button {
+            width: 100%;
+            padding: 15px 20px;
+            background-color: #43A363;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropdown-button:hover {
+            background-color: #306032;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 163, 99, 0.3);
+        }
+
+        .dropdown-arrow {
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #FFFFFF;
+            border: 1px solid #E8EDE8;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(48, 96, 50, 0.15);
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            margin-top: 5px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            border-bottom: 1px solid #E8EDE8;
+            color: #306032;
+        }
+
+        .dropdown-item:hover {
+            background-color: #E8EDE8;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .info-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(48, 96, 50, 0.08);
+            border: 1px solid #E8EDE8;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #306032;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #000000;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #8B8B8B;
+            font-style: italic;
+            margin-top: 40px;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            text-align: center;
+            color: #43A363;
+            font-size: 1.1rem;
+            margin-top: 40px;
+        }
+
+        .error {
+            text-align: center;
+            color: #d32f2f;
+            font-size: 1.1rem;
+            margin-top: 40px;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .dropdown-button {
+                font-size: 1rem;
+                padding: 12px 15px;
+            }
+        }
+
+        /* 스크롤바 스타일링 */
+        .dropdown-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: #43A363;
+            border-radius: 3px;
+        }
+    </style>
 </head>
 <body>
-  <div id="word-list"></div>
-  <div id="details">
-    <h2>Select a word</h2>
-    <p>Click a word on the left to view details and related terms.</p>
-  </div>
+    <div class="container">
+        <h1>데이터베이스 구경하기</h1>
+        
+        <div class="dropdown-container">
+            <button class="dropdown-button" id="dropdownButton">
+                <span id="selectedText">신조어를 선택하세요</span>
+                <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="dropdown-menu" id="dropdownMenu"></div>
+        </div>
 
-  <script>
-    let data = [];
-    let clusters = {};
+        <div id="infoContainer" class="loading">
+            데이터를 불러오는 중...
+        </div>
+    </div>
 
-    async function loadData() {
-      const response = await fetch('neologism_analysis.json');
-      const json = await response.json();
-      data = json.data;
-      const clusterLabels = json.clusters;
+    <script>
+        let csvData = [];
+        let isDropdownOpen = false;
 
-      // 클러스터 별로 데이터 정리
-      data.forEach((item, idx) => {
-        item.Cluster = clusterLabels[idx];
-        if (!(item.Cluster in clusters)) {
-          clusters[item.Cluster] = [];
+        // CSV 파일 읽기 (jQuery AJAX 사용)
+        function loadCSV() {
+            $('#infoContainer').removeClass().addClass('loading').text('데이터를 불러오는 중...');
+            
+            $.ajax({
+                url: './Slangs(Hyebin).csv',
+                dataType: 'text',
+                method: 'GET',
+                cache: false
+            }).done(function(data) {
+                console.log('CSV 파일 로드 성공');
+                parseCSV(data);
+            }).fail(function(xhr, status, error) {
+                console.error('CSV 파일 로드 실패:', error);
+                $('#infoContainer').removeClass().addClass('error').text('CSV 파일을 불러올 수 없습니다. 샘플 데이터를 사용합니다.');
+                // 3초 후 샘플 데이터로 대체
+                setTimeout(createSampleData, 3000);
+            });
         }
-        clusters[item.Cluster].push(item);
-      });
 
-      renderList();
-    }
+        // CSV 파싱
+        function parseCSV(csvContent) {
+            try {
+                const allRows = csvContent.split(/\r?\n|\r/);
+                const headers = parseCSVRow(allRows[0]);
+                
+                csvData = [];
+                for (let i = 1; i < allRows.length; i++) {
+                    if (allRows[i].trim()) {
+                        const values = parseCSVRow(allRows[i]);
+                        if (values.length === headers.length) {
+                            const row = {};
+                            headers.forEach((header, index) => {
+                                row[header.trim()] = values[index] ? values[index].trim() : '';
+                            });
+                            csvData.push(row);
+                        }
+                    }
+                }
+                
+                console.log('파싱된 데이터:', csvData);
+                populateDropdown();
+                $('#infoContainer').removeClass().addClass('no-data').text('신조어를 선택하면 상세 정보가 여기에 표시됩니다.');
+                
+            } catch (error) {
+                console.error('CSV 파싱 오류:', error);
+                $('#infoContainer').removeClass().addClass('error').text('데이터 파싱 중 오류가 발생했습니다.');
+                setTimeout(createSampleData, 2000);
+            }
+        }
 
-    function renderList() {
-      const container = document.getElementById('word-list');
-      container.innerHTML = '';
-      data.forEach((item, i) => {
-        const div = document.createElement('div');
-        div.textContent = `${item.Expression} (${item.Language})`;
-        div.onclick = () => showDetails(item);
-        container.appendChild(div);
-      });
-    }
+        // CSV 행 파싱 (쉼표와 따옴표 처리)
+        function parseCSVRow(row) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < row.length; i++) {
+                const char = row[i];
+                
+                if (char === '"') {
+                    if (inQuotes && row[i + 1] === '"') {
+                        // 연속된 따옴표는 하나의 따옴표로 처리
+                        current += '"';
+                        i++; // 다음 따옴표 건너뛰기
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current);
+            return result.map(cell => cell.replace(/^"|"$/g, '').trim());
+        }
 
-    function showDetails(selected) {
-      const detail = document.getElementById('details');
-      detail.innerHTML = `
-        <h2>${selected.Expression} (${selected.Language})</h2>
-        <p><strong>Meaning:</strong> ${selected['Explanation(English)'] || 'N/A'}</p>
-        <p><strong>Example:</strong> ${selected['Example sentence(Korean)'] || selected['Example sentence(Spanish)'] || 'N/A'}</p>
-        <h3>🧩 Similar items in Cluster ${selected.Cluster}</h3>
-      `;
+        // 샘플 데이터 생성 (CSV 파일이 없을 경우)
+        function createSampleData() {
+            csvData = [
+                {
+                    'Neologism': '갓생',
+                    'Explanation(English)': 'God-like life, referring to a very productive and well-organized lifestyle',
+                    'Background(English)': 'Combination of "갓(God)" and "인생(life)"',
+                    'Example Sentence': '오늘도 갓생 살아보자!',
+                    'Category': 'Lifestyle',
+                    'Mood': 'Positive',
+                    'Channel': 'Social Media',
+                    'Age Group': '20s',
+                    'Year': '2020',
+                    'Whom to Use': 'Friends',
+                    'Type': 'Compound',
+                    'Language': 'Korean'
+                },
+                {
+                    'Neologism': '워라밸',
+                    'Explanation(English)': 'Work-life balance',
+                    'Background(English)': 'Abbreviation of "Work and Life Balance"',
+                    'Example Sentence': '워라밸이 중요해요.',
+                    'Category': 'Work',
+                    'Mood': 'Neutral',
+                    'Channel': 'Business',
+                    'Age Group': '30s',
+                    'Year': '2018',
+                    'Whom to Use': 'Colleagues',
+                    'Type': 'Abbreviation',
+                    'Language': 'Korean-English'
+                },
+                {
+                    'Neologism': '혼밥',
+                    'Explanation(English)': 'Eating alone',
+                    'Background(English)': 'Combination of "혼자(alone)" and "밥(meal)"',
+                    'Example Sentence': '혼밥도 나쁘지 않아요.',
+                    'Category': 'Lifestyle',
+                    'Mood': 'Neutral',
+                    'Channel': 'Social Media',
+                    'Age Group': '20s-30s',
+                    'Year': '2015',
+                    'Whom to Use': 'Anyone',
+                    'Type': 'Compound',
+                    'Language': 'Korean'
+                }
+            ];
+            
+            console.log('샘플 데이터 로드됨');
+            populateDropdown();
+            $('#infoContainer').removeClass().addClass('no-data').text('신조어를 선택하면 상세 정보가 여기에 표시됩니다.');
+        }
 
-      const clusterItems = clusters[selected.Cluster] || [];
-      clusterItems.forEach(item => {
-        if (item.Expression === selected.Expression && item.Language === selected.Language) return;
-        const div = document.createElement('div');
-        div.className = 'pair';
-        div.innerHTML = `
-          <strong>${item.Expression} (${item.Language})</strong><br>
-          <span class="meta">${item['Explanation(English)']}</span>
-        `;
-        detail.appendChild(div);
-      });
-    }
+        // 드롭다운 메뉴 채우기
+        function populateDropdown() {
+            const $dropdownMenu = $('#dropdownMenu');
+            $dropdownMenu.empty();
+            
+            csvData.forEach((item, index) => {
+                const neologism = item['Neologism'] || `항목 ${index + 1}`;
+                const $dropdownItem = $('<div>')
+                    .addClass('dropdown-item')
+                    .text(neologism)
+                    .on('click', function() {
+                        selectItem(item);
+                    });
+                
+                $dropdownMenu.append($dropdownItem);
+            });
+            
+            console.log(`${csvData.length}개 항목이 드롭다운에 추가됨`);
+        }
 
-    loadData();
-  </script>
+        // 아이템 선택
+        function selectItem(item) {
+            const neologism = item['Neologism'] || '선택된 항목';
+            $('#selectedText').text(neologism);
+            
+            closeDropdown();
+            displayItemInfo(item);
+        }
+
+        // 아이템 정보 표시
+        function displayItemInfo(item) {
+            const $infoContainer = $('#infoContainer');
+            $infoContainer.removeClass().addClass('info-grid');
+            
+            const fields = [
+                { key: 'Neologism', label: '신조어' },
+                { key: 'Explanation(English)', label: '영어 설명' },
+                { key: 'Background(English)', label: '배경 (영어)' },
+                { key: 'Example Sentence', label: '예문' },
+                { key: 'Category', label: '카테고리' },
+                { key: 'Mood', label: '분위기' },
+                { key: 'Channel', label: '채널' },
+                { key: 'Age Group', label: '연령대' },
+                { key: 'Year', label: '연도' },
+                { key: 'Whom to Use', label: '사용 대상' },
+                { key: 'Type', label: '유형' },
+                { key: 'Language', label: '언어' }
+            ];
+            
+            const cardsHtml = fields.map(field => {
+                const value = item[field.key] || '-';
+                return `
+                    <div class="info-card">
+                        <div class="info-label">${field.label}</div>
+                        <div class="info-value">${value}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            $infoContainer.html(cardsHtml);
+        }
+
+        // 드롭다운 토글
+        function toggleDropdown() {
+            const $dropdownMenu = $('#dropdownMenu');
+            const $arrow = $('.dropdown-arrow');
+            
+            if (isDropdownOpen) {
+                closeDropdown();
+            } else {
+                $dropdownMenu.addClass('show');
+                $arrow.addClass('open');
+                isDropdownOpen = true;
+            }
+        }
+
+        // 드롭다운 닫기
+        function closeDropdown() {
+            $('#dropdownMenu').removeClass('show');
+            $('.dropdown-arrow').removeClass('open');
+            isDropdownOpen = false;
+        }
+
+        // jQuery를 사용한 이벤트 리스너
+        $(document).ready(function() {
+            // 드롭다운 버튼 클릭
+            $('#dropdownButton').on('click', toggleDropdown);
+            
+            // 외부 클릭 시 드롭다운 닫기
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('.dropdown-container').length && isDropdownOpen) {
+                    closeDropdown();
+                }
+            });
+            
+            // CSV 파일 로드
+            loadCSV();
+        });
+    </script>
 </body>
 </html>
