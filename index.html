@@ -63,6 +63,32 @@
     .loading { color: #43A363; }
     .error { color: #d32f2f; }
     .no-data { color: #8B8B8B; font-style: italic; }
+
+    @media (max-width: 768px) {
+  table {
+    font-size: 0.7rem;
+    min-width: unset;
+    table-layout: auto;
+  }
+  th, td {
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.3rem;
+  }
+
+  #searchInput {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+}
+
   </style>
 </head>
 <body>
