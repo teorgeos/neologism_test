@@ -66,6 +66,24 @@
   </style>
 </head>
 <body>
+    <div style="margin-bottom: 20px;">
+  <label for="pageSelector" style="font-size: 1rem; margin-right: 10px;">다른 페이지로 이동:</label>
+  <select id="pageSelector" style="padding: 8px 12px; font-size: 1rem; border-radius: 10px;">
+    <option value="index.html">📂 index.html</option>
+    <option value="1_mood.html">1_mood.html</option>
+    <option value="2_Background.html">2_Background.html</option>
+    <option value="2_Example sentence.html">2_Example sentence.html</option>
+    <option value="2,3_Explanation(english).html">2,3_Explanation(english).html</option>
+    <option value="3_Explanation,Example Sentence.html">3_Explanation,Example Sentence.html</option>
+    <option value="4_explanation, example sentence, background.html">4_explanation, example sentence, background.html</option>
+    <option value="5_Explanation, Mood.html">5_Explanation, Mood.html</option>
+    <option value="6_channel.html">6_channel.html</option>
+    <option value="7_Channel,Background,Year.html">7_Channel,Background,Year.html</option>
+    <option value="8_category, mood, year.html">8_category, mood, year.html</option>
+  </select>
+  <button onclick="goToSelectedPage()" style="padding: 8px 16px; font-size: 1rem; margin-left: 10px; border-radius: 10px; background-color: #306032; color: white; border: none;">이동</button>
+</div>
+
   <div class="container">
     <h1>Neologism Database</h1>
     <input type="text" id="searchInput" placeholder="Search for a neologism...">
@@ -161,5 +179,12 @@
       loadCSV();
     });
   </script>
+  <script>
+  function goToSelectedPage() {
+    const selected = document.getElementById('pageSelector').value;
+    window.location.href = selected;
+  }
+</script>
+
 </body>
 </html>
